@@ -65,4 +65,43 @@
         exactly once 消息不会丢失, 也不会重复消费
         
 高可用：
-    
+    zookeeper节点结构
+        admin
+        brokers 存储活着的broker信息
+        controller 
+
+producer发布消息：
+    1.producer采用push模式将消息发布到 broker, 每条消息都被append到 patition 中,属于顺序写磁盘(顺序写磁盘效率比随机写内存要
+        高,保障kafka吞吐率)
+    2.producer发送消息到 broker 时, 会根据分区算法选择将其存储到哪一个 partition
+        2.1 指定了 patition, 则直接使用;
+        2.2 未指定 patition 但指定 key, 通过对key的value进行hash选出一个 patition;
+        2.3 patition 和 key 都未指定, 使用轮询选出一个 patition
+    3.写入流程
+        step1 producer先从zookeeper的"/brokers/.../state"节点找到该partition的leader
+        step2 producer将消息发送给该leader
+        step3 leader将消息写入本地log
+        step4 followers从leader pull消息, 写入本地log后, 向leader发送ACK 
+        step5 leader收到所有ISR中的replica的ACK后, 增加HW(high watermark, 即最后commit的offset), 并向producer发送ACK    
+        
+broker保存消息:
+    1.存储方式
+        物理上把topic分成一个或多个patition, 每个patition物理上对应一个文件夹(该文件夹存储该 patition 的所有消息和索引文件)
+    2.存储策略
+        无论消息是否被消费, kafka都会保留所有消息。有两种策略可以删除旧数据:
+            基于时间: log.retention.hours=168
+            基于大小: log.retention.bytes=1073741824
+            
+topic创建和删除:
+    1.topic创建
+        step1: controller在ZooKeeper的/brokers/topics节点上注册watcher, 当topic被创建, 则controller会通过watch得到该topic
+            的partition/replica分配
+        step2: controller从/brokers/ids读取当前所有可用的broker列表, 对于set_p中的每一个partition:
+            从分配给该partition的所有replica(称为AR)中任选一个可用的broker作为新的leader，并将AR设置为新的 ISR 
+            将新的leader和ISR写入/brokers/topics/[topic]/partitions/[partition]/state
+        step3: controller通过RPC向相关的broker发送LeaderAndISRRequest
+    2.topic删除
+        step1: controller在zooKeeper的/brokers/topics节点上注册watcher, 当topic被删除, 则controller会通过watch得到该topic
+            的partition/replica分配
+        step2: 若delete.topic.enable=false结束; 否则controller注册在/admin/delete_topics上的watch被fire, controller通过回
+            调向对应的broker发送StopReplicaRequest
