@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
  * @Date 2019/11/6
  */
 @Component
-public class Consumer {
+public class Consumer2 {
 
-    @KafkaListener(topics = "first-topic")
-    public void listen(ConsumerRecord<?, ?> record) throws Exception {
+    @KafkaListener(topics = "first-topic", containerFactory = "kafkaListenerContainerFactory2")
+    public void listen(ConsumerRecord<?, ?> record) {
         System.out.println("topic = " + record.topic() + ", value = " + record.value());
     }
 }

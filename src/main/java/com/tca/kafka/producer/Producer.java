@@ -30,7 +30,7 @@ public class Producer {
 
     @GetMapping("/{message}")
     public String message(@PathVariable String message) {
-        kafkaTemplate.send("", message);
+        kafkaTemplate.send(TOPIC_NAME, message);
         return SUCCESS;
     }
 

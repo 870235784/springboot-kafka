@@ -51,12 +51,17 @@
         消费者可以从broker中读取数据。消费者可以消费多个topic中的数据。
     6.consumer group
         每个Consumer属于一个特定的Consumer Group(可为每个Consumer指定group name，若不指定group name则属于默认的group)
+        注意: 1.同一个消费组中的不同消费者之间只能消费同一个topic下的不同patition数据, 不能重复消费同一个topic下的同一数据
+                (在实际的应用中, 建议消费者组的consumer的数量与partition的数量一致)
+              2.不同消费组可以同时消费同一个topic下的同一数据
     7.leader
         每个partition有多个副本，其中有且仅有一个作为Leader，Leader是当前负责数据的读写的partition。
     8.follower
         Follower跟随Leader，所有写请求都通过Leader路由，数据变更会广播给所有Follower，Follower与Leader保持数据同步。
         如果Leader失效，则从Follower中选举出一个新的Leader。当Follower与Leader挂掉、卡住或者同步太慢，leader会把这个follower
         从"in sync replicas"(ISR)列表中删除，重新创建一个Follower。
+    9.消息队列中点对点模式和发布订阅模式
+        参见: https://blog.csdn.net/lizhitao/article/details/47723105
 
 配置:
     kafka delivery guarantee
@@ -129,5 +134,9 @@ kafka配置文件:
         log.cleaner.enable=false    //是否启用log压缩，一般不用启用，启用的话可以提高性能
         zookeeper.connect=192.168.123.102:2181,192.168.123.103:2181,192.168.123.104:2181    //设置zookeeper的连接端口
         zookeeper.connection.timeout.ms=6000    //设置zookeeper的连接超时时间
+        
+应用:
+    1.在一个springboot项目中使用多个消费组分别消费同一组数据
+        参见 https://blog.csdn.net/zhen_6137/article/details/80945690
     
         
