@@ -6,6 +6,12 @@
     3.创建 kafka topic
          .\bin\windows\kafka-topics.bat --create --zookeeper localhost:2181 
          --replication-factor 1 --partitions 1 --topic ${topic_name}
+         参数解析: 
+            --zookeeper ip:port    zookeeper集群地址
+            --partitions num    给topic指定分区数
+            --replication-factor num    指定每个partitions的副本数
+            --topic topic_name    指定topic的名称
+        
     4.查看 kafka topic
         .\bin\windows\kafka-topics.bat --list --zookeeper localhost:2181
         
@@ -51,7 +57,7 @@
         消费者可以从broker中读取数据。消费者可以消费多个topic中的数据。
     6.consumer group
         每个Consumer属于一个特定的Consumer Group(可为每个Consumer指定group name，若不指定group name则属于默认的group)
-        注意: 1.同一个消费组中的不同消费者之间只能消费同一个topic下的不同patition数据, 不能重复消费同一个topic下的同一数据
+        注意: 1.同一个消费组中的不同消费者之间只能消费同一个topic下的不同partition数据, 不能重复消费同一个topic下的同一数据
                 (在实际的应用中, 建议消费者组的consumer的数量与partition的数量一致)
               2.不同消费组可以同时消费同一个topic下的同一数据
     7.leader
@@ -76,12 +82,12 @@
         controller 
 
 producer发布消息：
-    1.producer采用push模式将消息发布到 broker, 每条消息都被append到 patition 中,属于顺序写磁盘(顺序写磁盘效率比随机写内存要
+    1.producer采用push模式将消息发布到 broker, 每条消息都被append到 partition 中, 属于顺序写磁盘(顺序写磁盘效率比随机写内存要
         高,保障kafka吞吐率)
     2.producer发送消息到 broker 时, 会根据分区算法选择将其存储到哪一个 partition
-        2.1 指定了 patition, 则直接使用;
-        2.2 未指定 patition 但指定 key, 通过对key的value进行hash选出一个 patition;
-        2.3 patition 和 key 都未指定, 使用轮询选出一个 patition
+        2.1 指定了 partition, 则直接使用;
+        2.2 未指定 partition 但指定 key, 通过对key的value进行hash选出一个 partition;
+        2.3 partition 和 key 都未指定, 使用轮询选出一个 partition
     3.写入流程
         step1 producer先从zookeeper的"/brokers/.../state"节点找到该partition的leader
         step2 producer将消息发送给该leader
@@ -91,7 +97,7 @@ producer发布消息：
         
 broker保存消息:
     1.存储方式
-        物理上把topic分成一个或多个patition, 每个patition物理上对应一个文件夹(该文件夹存储该 patition 的所有消息和索引文件)
+        物理上把topic分成一个或多个partition, 每个partition物理上对应一个文件夹(该文件夹存储该 partition 的所有消息和索引文件)
     2.存储策略
         无论消息是否被消费, kafka都会保留所有消息。有两种策略可以删除旧数据:
             基于时间: log.retention.hours=168
@@ -138,5 +144,6 @@ kafka配置文件:
 应用:
     1.在一个springboot项目中使用多个消费组分别消费同一组数据
         参见 https://blog.csdn.net/zhen_6137/article/details/80945690
-    
+    2.同一个消费组中的消费者负载均衡地消费同一topic中的不同数据
+        参见 https://blog.csdn.net/zhaishujie/article/details/71713794
         
