@@ -52,7 +52,7 @@ public class KafkaConsumerConfig {
      * kafka ListenerContainerFactory配置
      * @return
      */
-    public Map<String, Object> getCommonPropertis() {
+    public Map<String, Object> getCommonProperties() {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -67,13 +67,13 @@ public class KafkaConsumerConfig {
 
 
     public ConsumerFactory<String, String> consumerFactory1() {
-        Map<String, Object> properties = getCommonPropertis();
+        Map<String, Object> properties = getCommonProperties();
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, group1);
         return new DefaultKafkaConsumerFactory<>(properties);
     }
 
     public ConsumerFactory<String, String> consumerFactory2() {
-        Map<String, Object> properties = getCommonPropertis();
+        Map<String, Object> properties = getCommonProperties();
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, group2);
         return new DefaultKafkaConsumerFactory<>(properties);
     }
